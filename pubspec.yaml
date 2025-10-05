@@ -45,6 +45,8 @@ dependencies:
   share_plus: ^12.0.0
   image_picker: ^1.2.0
   cross_file: ^0.3.4+2
+  qr_flutter: ^4.1.0
+  qr_code_scanner_plus: ^2.0.12
 
 dev_dependencies:
   flutter_test:
@@ -56,7 +58,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-
+  flutter_launcher_icons: "^0.14.4"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -98,3 +100,21 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+    background_color: "#ffffff"
+    theme_color: "#f0f0f0"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+    icon_size: 128 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/icon.png"

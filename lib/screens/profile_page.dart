@@ -1,11 +1,10 @@
-// lib/screens/profile_page.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pathwise/models/user_model.dart';
 import 'package:pathwise/screens/auth_page.dart';
-
-import 'package:share_plus/share_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class ProfilePage extends StatefulWidget {
   final String uid;
@@ -18,7 +17,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  UserModel? _userModel; // Use our custom user model
+  UserModel? _userModel;
   bool _loading = true;
   String? _error;
 
@@ -87,7 +86,6 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: Colors.grey[200],
       );
     }
-    // Fallback to initials
     final initials = (displayName ?? '')
         .trim()
         .split(' ')
@@ -103,6 +101,44 @@ class _ProfilePageState extends State<ProfilePage> {
         style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
       ),
     );
+  }
+
+  void _showQrDialog(String uid) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Your QR Code'),
+        content: SizedBox(
+          width: 220,
+          height: 220,
+          child: Center(
+            child: QrImageView(
+              data: uid,
+              size: 200, // still sets QR size inside the box
+              version: QrVersions.auto,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _scanQr() async {
+    final result = await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const QrScannerPage()));
+
+    if (result != null && result is String) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => ProfilePage(uid: result)));
+    }
   }
 
   @override
@@ -127,7 +163,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final user = _userModel!;
-    // Check if the profile being viewed is the currently logged-in user
     final bool isCurrentUser =
         FirebaseAuth.instance.currentUser?.uid == widget.uid;
 
@@ -136,6 +171,12 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text(
           isCurrentUser ? 'My Profile' : (user.displayName ?? 'Profile'),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: _scanQr,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -158,15 +199,12 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ListTile(
                 leading: const Icon(Icons.fingerprint_rounded),
                 title: const Text('Share User ID'),
-                // subtitle: Text(user.uid),
                 trailing: IconButton(
-                  icon: const Icon(Icons.share_rounded),
+                  icon: const Icon(Icons.qr_code_rounded),
                   onPressed: () {
                     final uidToShare =
                         FirebaseAuth.instance.currentUser?.uid ?? user.uid;
-                    final uri = Uri.https('pathwise.com', 'user/$uidToShare');
-                    final params = ShareParams(uri: uri);
-                    SharePlus.instance.share(params);
+                    _showQrDialog(uidToShare);
                   },
                 ),
               ),
@@ -186,6 +224,41 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// QR Scanner Page
+class QrScannerPage extends StatefulWidget {
+  const QrScannerPage({super.key});
+
+  @override
+  State<QrScannerPage> createState() => _QrScannerPageState();
+}
+
+class _QrScannerPageState extends State<QrScannerPage> {
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? controller;
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  void _onQRViewCreated(QRViewController ctrl) {
+    controller = ctrl;
+    ctrl.scannedDataStream.listen((scanData) {
+      controller?.pauseCamera();
+      Navigator.of(context).pop(scanData.code);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Scan QR Code")),
+      body: QRView(key: qrKey, onQRViewCreated: _onQRViewCreated),
     );
   }
 }
