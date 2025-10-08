@@ -5,10 +5,16 @@ class UserModel {
   final String? displayName;
   final String? email;
   final String? photoURL;
+  final List<String> blockedUsers;
 
-  UserModel({required this.uid, this.displayName, this.email, this.photoURL});
+  UserModel({
+    required this.uid,
+    this.displayName,
+    this.email,
+    this.photoURL,
+    this.blockedUsers = const [],
+  });
 
-  // Factory constructor to create a UserModel from a Firestore document
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return UserModel(
@@ -16,6 +22,19 @@ class UserModel {
       displayName: data['displayName'] as String?,
       email: data['email'] as String?,
       photoURL: data['photoURL'] as String?,
+      blockedUsers: List<String>.from(data['blockedUsers'] ?? []),
     );
   }
+
+  // Converts the UserModel instance to a map.
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'displayName': displayName,
+      'email': email,
+      'photoURL': photoURL,
+      'blockedUsers': blockedUsers,
+    };
+  }
 }
+

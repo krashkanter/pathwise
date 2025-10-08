@@ -9,17 +9,12 @@ plugins {
 }
 
 dependencies {
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
   implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
   implementation("com.google.firebase:firebase-analytics")
-
+//  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
-
-// def keystoreProperties = new Properties()
-// def keystorePropertiesFile = rootProject.file('key.properties')
-// if (keystorePropertiesFile.exists()) {
-//     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-// }
 
 android {
     namespace = "com.example.pathwise"
@@ -27,6 +22,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -44,24 +41,16 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+//        multiDexEnabled = true
     }
 
-    // signingConfigs {
-    //     release {
-    //         keyAlias keystoreProperties['keyAlias']
-    //         keyPassword keystoreProperties['keyPassword']
-    //         storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-    //         storePassword keystoreProperties['storePassword']
-    //     }
-    // }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-
-            // signingConfig = signingConfigs.getByName("release")
         }
     }
 }
